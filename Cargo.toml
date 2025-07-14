@@ -7,6 +7,8 @@ authors = ["Arane Aimer"]
 [dependencies]
 tokio = { version = "1.37", features = ["full"] }
 clap = { version = "4.5", features = ["derive"] }
-cpal = "0.16.0"
-opus = "0.3.0"
+anyhow = "1.0.98"
+gstreamer = "0.23.7"
+gstreamer-rtsp-server = "0.23.5"
+glib = "0.20.12"
 

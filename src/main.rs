@@ -2,7 +2,6 @@ mod server;
 mod client;
 use clap::{Parser, Subcommand};
 
-
 /// MICA (Microphone Input Capture Application)
 #[derive(Parser)]
 #[command(
@@ -36,7 +35,7 @@ async fn main() {
 
     match cli.command {
         Command::Serve => {
-            server::run().await;
+            server::start_server(7373);
         },
         Command::Connect { address } => {
             client::connect(&address).await;
