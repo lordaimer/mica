@@ -7,9 +7,9 @@ use clap::{Parser, Subcommand};
 #[command(
     name = "mica",
     version,
-    about = 
-    r#"MICA is a simple, standalone tool that captures your microphone input 
-    and streams it over the network in real time."#,
+    about =
+    r#"MICA is a simple, standalone tool that captures your microphone input
+and streams it over the network in real time."#,
     author = "Arane Aimer"
 )]
 struct Cli {
@@ -20,7 +20,11 @@ struct Cli {
 #[derive(Subcommand)]
 enum Command {
     /// Start the microphone server on port 7373 (default)
-    Serve,
+    Serve {
+        /// Port to bind the server to
+        #[arg(short = 'p', long = "port", default_value = "7373")]
+        port: u16,
+    },
 
     /// Connect to a server and play the audio stream
     Connect {
@@ -34,8 +38,8 @@ async fn main() {
     let cli = Cli::parse();
 
     match cli.command {
-        Command::Serve => {
-            server::start_server(7373);
+        Command::Serve { port } => {
+            server::start_server(port);
         },
         Command::Connect { address } => {
             client::connect(&address).await;
