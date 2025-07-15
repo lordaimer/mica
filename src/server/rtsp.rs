@@ -4,7 +4,7 @@ use gstreamer_rtsp_server as rtsp;
 use rtsp::prelude::*;
 use glib::MainLoop;
 
-/// Serve an RTSP stream at `/audio` on `port` using a simple launch string.
+/// Serve an RTSP stream at `/` on `port` using a simple launch string.
 pub fn serve_rtsp(launch: &str, port: u16) -> Result<()> {
     // 0) Initialize GStreamer
     gst::init().context("Failed to initialize GStreamer")?;
@@ -23,7 +23,7 @@ pub fn serve_rtsp(launch: &str, port: u16) -> Result<()> {
     factory.set_shared(true);              // RTSPMediaFactoryExt
     factory.set_launch(&format!("( {} )", launch));
 
-    // 4) Mount at /audio — pass factory by value!
+    // 4) Mount at / — pass factory by value!
     mounts.add_factory("/", factory); // RTSPMountPointsExt
 
     // 5) Attach and run
