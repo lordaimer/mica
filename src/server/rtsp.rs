@@ -13,7 +13,7 @@ pub fn serve_rtsp(launch: &str, port: u16) -> Result<()> {
     let server = rtsp::RTSPServer::new();
     server.set_service(&port.to_string()); // RTSPServerExt
 
-    // 2) Grab its mount points
+    // 2) Grab server mount points
     let mounts = server
         .mount_points()                     // RTSPServerExt
         .context("Failed to get mount points")?;

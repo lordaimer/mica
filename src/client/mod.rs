@@ -16,11 +16,10 @@ fn run(address: &str) -> Result<()> {
     // 2) Build pipeline with parse_launch (caps + depay + decode + convert + sink)
     let uri = format!("rtsp://{}", address);
     let launch = format!(
-        "rtspsrc location={} latency=0 name=src \
-         src. ! application/x-rtp,media=audio,encoding-name=OPUS,payload=96 ! \
-         rtpopusdepay ! opusdec ! audioconvert ! autoaudiosink",
+        "uridecodebin uri={} ! audioconvert ! autoaudiosink",
         uri
     );
+
 
     let element = gst::parse::launch(&launch)
         .context("Failed to parse launch string")?;
