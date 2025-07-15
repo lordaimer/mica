@@ -1,6 +1,6 @@
 [package]
 name = "mica"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2024"
 authors = ["Arane Aimer"]
 
@@ -12,3 +12,9 @@ gstreamer = "0.23.7"
 gstreamer-rtsp-server = "0.23.5"
 glib = "0.20.12"
 
+[profile.release]
+opt-level = "z"       # Or "s" for size, "z" is smallest
+lto = true            # Enable Link Time Optimization
+codegen-units = 1     # Single codegen unit = better optimization, slower compile
+strip = true          # Strip debug symbols (Rust 1.79+)
+panic = "abort"       # No unwinding, smaller binary

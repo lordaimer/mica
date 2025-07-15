@@ -28,8 +28,12 @@ enum Command {
 
     /// Connect to a server and play the audio stream
     Connect {
-        /// Host and port to connect to, e.g. 192.168.1.10:7373
-        address: String,
+        /// Host (with optional :port). Example: 192.168.1.6:7373 or 192.168.1.6 (uses 7373 as default port)
+        host: String,
+
+        /// Port override
+        #[arg(short = 'p', long = "port", default_value = "7373")]
+        port: u16,
     },
 }
 
@@ -41,8 +45,20 @@ async fn main() {
         Command::Serve { port } => {
             server::start_server(port);
         },
-        Command::Connect { address } => {
-            client::connect(&address).await;
-        },
+        Command::Connect { host, port } => {
+            let (address, addr_port) = match host.split_once(':') {
+                Some((h, p)) => (h, p.parse::<u16>().unwrap_or(7373)),
+                None => (host.as_str(), 7373),
+            };
+
+            let final_port = if host.contains(':') && port == 7373 {
+                addr_port
+            } else {
+                port
+            };
+
+            let final_address = format!("{}:{}", address, final_port);
+            client::connect(&final_address).await;
+        }
     }
 }
