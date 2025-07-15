@@ -47,7 +47,13 @@ async fn main() {
         },
         Command::Connect { host, port } => {
             let (address, host_port) = if let Some((h, p)) = host.split_once(':') {
-                let p = p.parse::<u16>().unwrap_or(7373);
+                let p = match p.parse::<u16>() {
+                    Ok(n) => n,
+                    Err(_) => {
+                        eprintln!("[mica] Invalid port '{}', using default 7373", p);
+                        7373
+                    }
+                };
                 (h.to_string(), p)
             } else {
                 (host, 7373)
