@@ -33,7 +33,7 @@ enum Command {
 
         /// Port override
         #[arg(short = 'p', long = "port", default_value = "7373")]
-        port: u16,
+        port: Option<u16>,
     },
 }
 
@@ -46,17 +46,14 @@ async fn main() {
             server::start_server(port);
         },
         Command::Connect { host, port } => {
-            let (address, addr_port) = match host.split_once(':') {
-                Some((h, p)) => (h, p.parse::<u16>().unwrap_or(7373)),
-                None => (host.as_str(), 7373),
-            };
-
-            let final_port = if host.contains(':') && port == 7373 {
-                addr_port
+            let (address, host_port) = if let Some((h, p)) = host.split_once(':') {
+                let p = p.parse::<u16>().unwrap_or(7373);
+                (h.to_string(), p)
             } else {
-                port
+                (host, 7373)
             };
 
+            let final_port = port.unwrap_or(host_port);
             let final_address = format!("{}:{}", address, final_port);
             client::connect(&final_address).await;
         }
