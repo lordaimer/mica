@@ -1,5 +1,3 @@
-mod server;
-mod client;
 use clap::{Parser, Subcommand};
 
 /// MICA (Microphone Input Capture Application)
@@ -43,7 +41,7 @@ async fn main() {
 
     match cli.command {
         Command::Serve { port } => {
-            server::start_server(port);
+            mica_lib::server::start_server(port);
         },
         Command::Connect { host, port } => {
             let (address, host_port) = if let Some((h, p)) = host.split_once(':') {
@@ -61,7 +59,7 @@ async fn main() {
 
             let final_port = port.unwrap_or(host_port);
             let final_address = format!("{}:{}", address, final_port);
-            client::connect(&final_address).await;
+            mica_lib::client::connect(&final_address).await;
         }
     }
 }
