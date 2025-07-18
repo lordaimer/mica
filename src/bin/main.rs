@@ -1,12 +1,13 @@
 use clap::{Parser, Subcommand};
+use libloading::{Library, Symbol};
+use std::{ffi::CString, path::Path};
 
 /// MICA (Microphone Input Capture Application)
 #[derive(Parser)]
 #[command(
     name = "mica",
     version,
-    about =
-    r#"MICA is a simple, standalone tool that captures your microphone input
+    about = r#"MICA is a simple, standalone tool that captures your microphone input
 and streams it over the network in real time."#,
     author = "Arane Aimer"
 )]
@@ -35,31 +36,44 @@ enum Command {
     },
 }
 
-#[tokio::main]
-async fn main() {
+fn main() {
     let cli = Cli::parse();
 
+    // SAFELY load the DLL
+    let lib = unsafe {
+        Library::new(Path::new("mica.dll"))
+            .expect("Failed to load mica.dll")
+    };
+
     match cli.command {
-        Command::Serve { port } => {
-            mica_lib::server::start_server(port);
+        Command::Serve { port } => unsafe {
+            // load and call run_server
+            let run_server: Symbol<unsafe extern "C" fn(u16)> =
+                lib.get(b"run_server").expect("Symbol run_server not found");
+            run_server(port);
         },
+
         Command::Connect { host, port } => {
+            // parse host[:port]
             let (address, host_port) = if let Some((h, p)) = host.split_once(':') {
-                let p = match p.parse::<u16>() {
-                    Ok(n) => n,
-                    Err(_) => {
-                        eprintln!("[mica] Invalid port '{}', using default 7373", p);
-                        7373
-                    }
-                };
+                let p = p.parse::<u16>().unwrap_or_else(|_| {
+                    eprintln!("[mica] Invalid port '{}', using default 7373", p);
+                    7373
+                });
                 (h.to_string(), p)
             } else {
                 (host, 7373)
             };
-
             let final_port = port.unwrap_or(host_port);
             let final_address = format!("{}:{}", address, final_port);
-            mica_lib::client::connect(&final_address).await;
+            let c_addr = CString::new(final_address).expect("Failed to convert CString");
+
+            unsafe {
+                // load and call run_client
+                let run_client: Symbol<unsafe extern "C" fn(*const i8)> =
+                    lib.get(b"run_client").expect("Symbol run_client not found");
+                run_client(c_addr.as_ptr() as *const i8);
+            }
         }
     }
 }
