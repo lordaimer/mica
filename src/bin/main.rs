@@ -1,6 +1,6 @@
 use clap::{Parser, Subcommand};
 use libloading::{Library, Symbol};
-use std::{ffi::CString, path::Path};
+use std::{ffi::CString, path::Path, process};
 
 /// MICA (Microphone Input Capture Application)
 #[derive(Parser)]
@@ -36,13 +36,36 @@ enum Command {
     },
 }
 
+fn gstreamer_installed() -> bool {
+    // Try gst-launch-1.0
+    if process::Command::new("gst-launch-1.0")
+        .arg("--version")
+        .output()
+        .map(|o| o.status.success())
+        .unwrap_or(false)
+    {
+        return true;
+    }
+    // Fallback to gst-launch-1.0.exe
+    process::Command::new("gst-launch-1.0.exe")
+        .arg("--version")
+        .output()
+        .map(|o| o.status.success())
+        .unwrap_or(false)
+}
+
 fn main() {
     let cli = Cli::parse();
 
+    if !gstreamer_installed() {
+        panic!("[error] gstreamer runtime is not installed on system. cannot continue")
+    }
+
     // SAFELY load the DLL
     let lib = unsafe {
-        Library::new(Path::new("mica.dll"))
-            .expect("Failed to load mica.dll")
+        Library::new(Path::new("libmica.dll"))
+            .expect("Failed to load libmica.dll, Make sure to place libmica.dll alongside mica.exe\
+            ")
     };
 
     match cli.command {
